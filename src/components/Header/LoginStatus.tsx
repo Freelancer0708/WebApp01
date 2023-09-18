@@ -1,4 +1,4 @@
-import { useAuthContext } from './AuthContext'
+import { useAuthContext } from '../AuthContext'
 import { FirebaseError } from '@firebase/util'
 import { getAuth, signOut } from 'firebase/auth'
 import { useRouter } from 'next/router';
@@ -22,9 +22,9 @@ export default function LoginStatus() {
         return (
             <>
                 <article className='flex flex-col items-end'>
-                    <div className='mb-2'>
+                    <p className='mb-2'>
                         {user.email}
-                    </div>
+                    </p>
                     <div>
                         <button className='bg-blue-800 px-7 py-2' onClick={handleSignOut}>
                             サインアウト

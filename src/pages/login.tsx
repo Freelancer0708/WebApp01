@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 export default function Login() {
     const router = useRouter();
     const app = initializeApp(firebaseConfig);
-
     const auth = getAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -34,7 +33,7 @@ export default function Login() {
                 <h2>{error}</h2>
                 <section className="pt-6">
                     <form onSubmit={handleSubmit} className="flex flex-col justify-start items-center">
-                        <table className="mb-6">
+                        <table className="mb-6 flex-table">
                             <tbody>
                                 <tr>
                                     <th className="p-2">メールアドレス</th>

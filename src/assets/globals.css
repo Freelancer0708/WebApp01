@@ -28,3 +28,29 @@ body {
 #__next {
   color: rgb(var(--foreground-rgb));
 }
+
+@media screen and (max-width: 800px) {
+  #__next header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+
+  }
+  #__next header > div {
+    justify-content: end;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  #__next header ul {
+    gap: 0.75rem;
+    display: none;
+  }
+  .flex-table tbody tr th {
+    display: block;
+    padding-bottom: 0;
+    text-align: left;
+  }
+  .flex-table tbody tr td {
+    display: block;
+    padding-bottom: 1rem;
+  }
+}

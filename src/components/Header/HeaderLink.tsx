@@ -15,17 +15,7 @@ export default function HeaderLink() {
                         </Link>
                     </li>
                     <li>
-                        <Link href="login">
-                            Login
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="register">
-                            Register
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="profile">
+                        <Link href="/profile">
                             Profile
                         </Link>
                     </li>
@@ -42,12 +32,12 @@ export default function HeaderLink() {
                         </Link>
                     </li>
                     <li>
-                        <Link href="login">
+                        <Link href="/login">
                             Login
                         </Link>
                     </li>
                     <li>
-                        <Link href="register">
+                        <Link href="/register">
                             Register
                         </Link>
                     </li>

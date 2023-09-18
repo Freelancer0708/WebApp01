@@ -8,6 +8,7 @@ import {
 import {User, getAuth, onAuthStateChanged } from 'firebase/auth'
 import { firebaseConfig } from './FirebaseConfig'
 import { initializeApp } from 'firebase/app'
+import { getFirestore } from "firebase/firestore";
 
 export type GlobalAuthState = {
     user: User | null | undefined
@@ -35,7 +36,6 @@ export const AuthProvider = ({ children }: Props) => {
             setUser(initialState)
             throw error
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>

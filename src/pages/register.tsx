@@ -1,13 +1,15 @@
-import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { useState, FormEvent } from 'react';
 import { initializeApp } from 'firebase/app';
 import { firebaseConfig } from "@/components/FirebaseConfig";
 import Link from "next/link";
+import { useRouter } from 'next/router';
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 export default function Register() {
-
+    const router = useRouter();
     const app = initializeApp(firebaseConfig);
-
+    const db = getFirestore(app);
     const auth = getAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,16 +19,25 @@ export default function Register() {
         e.preventDefault();
         createUserWithEmailAndPassword(auth, email, password)
             .then(() => {
+                const user = auth.currentUser;
+                if(user?.uid) {
+                    return setDoc(doc(db, "users", user.uid), {
+                        displayName: "None",
+                        email: email,
+                        emailVerified: false,
+                        photoURL: ""
+                    });
+                }
+            })
+            .then(() => {
                 setEmail('')
                 setPassword('')
                 setErrer('')
                 auth.signOut();
+                router.push("login");
             })
             .catch((error) => {
                 const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log("errorCode", errorCode);
-                console.log("errorMessage", errorMessage);
                 if (errorCode == "auth/email-already-in-use") {
                     setErrer("このメールアドレスは既に登録されています。");
                 } else if (errorCode == "auth/invalid-email") {
@@ -46,7 +57,7 @@ export default function Register() {
                 <h2>{error}</h2>
                 <section className="pt-6">
                     <form onSubmit={handleSubmit} className="flex flex-col justify-start items-center">
-                        <table className="mb-6">
+                        <table className="mb-6 flex-table">
                             <tbody>
                                 <tr>
                                     <th className="p-2">メールアドレス</th>
