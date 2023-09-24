@@ -7,14 +7,9 @@ import { useRouter } from 'next/router';
 import Link from "next/link";
 import { UserData } from "@/components/UserData/UserData";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
-import { useAuthContext } from "@/components/AuthContext";
 
 export default function EditProfile() {
     const router = useRouter();
-    const { user } = useAuthContext()
-    if (!user) {
-        router.push("/login");
-    }
     const [userData, setUserData] = useState<UserData | null>(null);
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
@@ -43,7 +38,7 @@ export default function EditProfile() {
         fetchData();
     }, []);
 
-    const handleImage = (e:React.ChangeEvent<HTMLInputElement>) => {
+    const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const image = e.target.files[0];
             console.log(image);
@@ -60,28 +55,28 @@ export default function EditProfile() {
         const currentUser = auth.currentUser;
 
         async function fetchData() {
-            if(avatar) {
-                const mountainImagesRef = ref(storage, 'avatar/'+ currentUser?.uid +'/'+ avatar.name);
+            if (avatar) {
+                const mountainImagesRef = ref(storage, 'avatar/' + currentUser?.uid + '/' + avatar.name);
                 await uploadBytes(mountainImagesRef, avatar)
             }
         }
         fetchData();
 
-        if(displayName == "" && userData?.displayName) {
+        if (displayName == "" && userData?.displayName) {
             setDisplayName(userData.displayName)
         }
-        if(email == "" && userData?.email) {
+        if (email == "" && userData?.email) {
             setEmail(userData.email)
         }
-        if(emailVerified == "" && userData?.emailVerified) {
-            if(userData?.emailVerified == true) {
+        if (emailVerified == "" && userData?.emailVerified) {
+            if (userData?.emailVerified == true) {
                 setEmailVerified("True")
-            } else if(userData?.emailVerified == false) {
+            } else if (userData?.emailVerified == false) {
                 setEmailVerified("False")
             }
         }
 
-        if(currentUser?.uid && displayName != "" && email != "" && emailVerified != "" && avatar != null) {
+        if (currentUser?.uid && displayName != "" && email != "" && emailVerified != "" && avatar != null) {
             return setDoc(doc(db, "users", currentUser.uid), {
                 displayName: displayName,
                 email: email,
@@ -104,23 +99,23 @@ export default function EditProfile() {
                             <tbody>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">ユーザー名</th>
-                                    <td className="py-3 pr-4"><input type="text" name="displayName" value={displayName || ''} placeholder={userData?.displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-gray-600 border-b outline-none w-80"/></td>
+                                    <td className="py-3 pr-4"><input type="text" name="displayName" value={displayName || ''} placeholder={userData?.displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">メールアドレス</th>
-                                    <td className="py-3 pr-4"><input type="text" name="email" value={email || ''} placeholder={userData?.email} onChange={(e) => setEmail(e.target.value)} className="bg-gray-600 border-b outline-none w-80"/></td>
+                                    <td className="py-3 pr-4"><input type="text" name="email" value={email || ''} placeholder={userData?.email} onChange={(e) => setEmail(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">パスワード</th>
-                                    <td className="py-3 pr-4"><input type="text" name="password" value={password || ''} placeholder="＊＊＊＊＊＊" onChange={(e) => setPassword(e.target.value)} className="bg-gray-600 border-b outline-none w-80"/></td>
+                                    <td className="py-3 pr-4"><input type="text" name="password" value={password || ''} placeholder="＊＊＊＊＊＊" onChange={(e) => setPassword(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">認証</th>
-                                    <td className="py-3 pr-4"><input type="text" name="emailVerified" value={emailVerified} placeholder={userData?.emailVerified ? 'True' : 'False'} onChange={(e) => setEmailVerified(e.target.value)} className="bg-gray-600 border-b outline-none w-80"/></td>
+                                    <td className="py-3 pr-4"><input type="text" name="emailVerified" value={emailVerified} placeholder={userData?.emailVerified ? 'True' : 'False'} onChange={(e) => setEmailVerified(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">プロフィール画像</th>
-                                    <td className="py-3 pr-4"><input type="file" name="avatar" onChange={handleImage} className="bg-gray-600 border-b outline-none w-80" accept="image/*"/></td>
+                                    <td className="py-3 pr-4"><input type="file" name="avatar" onChange={handleImage} className="bg-gray-600 border-b outline-none w-80" accept="image/*" /></td>
                                 </tr>
                             </tbody>
                         </table>

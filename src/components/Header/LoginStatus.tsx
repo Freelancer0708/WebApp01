@@ -1,5 +1,4 @@
 import { useAuthContext } from '../AuthContext'
-import { FirebaseError } from '@firebase/util'
 import { getAuth, signOut } from 'firebase/auth'
 import { useRouter } from 'next/router';
 import { UserData } from '../UserData/UserData';
