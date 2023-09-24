@@ -36,13 +36,13 @@ body {
 
   }
   #__next header > div {
-    justify-content: end;
+    /* justify-content: end; */
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
   #__next header ul {
     gap: 0.75rem;
-    display: none;
+    /* display: none; */
   }
   .flex-table tbody tr th {
     display: block;

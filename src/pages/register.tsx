@@ -19,13 +19,13 @@ export default function Register() {
         e.preventDefault();
         createUserWithEmailAndPassword(auth, email, password)
             .then(() => {
-                const user = auth.currentUser;
-                if(user?.uid) {
-                    return setDoc(doc(db, "users", user.uid), {
-                        displayName: "None",
+                const currentUser = auth.currentUser;
+                if(currentUser?.uid) {
+                    return setDoc(doc(db, "users", currentUser.uid), {
+                        displayName: "UserName",
                         email: email,
                         emailVerified: false,
-                        photoURL: ""
+                        avatar: ""
                     });
                 }
             })

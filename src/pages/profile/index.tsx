@@ -1,18 +1,26 @@
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { initializeApp } from 'firebase/app';
+import { FirebaseError, initializeApp } from 'firebase/app';
 import { firebaseConfig } from "@/components/FirebaseConfig";
-
-interface UserData {
-    displayName: string;
-    email: string;
-    emailVerified: boolean;
-    photoURL: string;
-}
+import { UserData } from "@/components/UserData/UserData";
+import { useRouter } from "next/router";
 
 export default function Profile() {
+    const router = useRouter();
+    const handleSignOut = async () => {
+        try {
+            const auth = getAuth()
+            await signOut(auth)
+            router.push("/login");
+        } catch (e) {
+            if (e instanceof FirebaseError) {
+                console.log(e)
+            }
+        }
+    }
+
     const [userData, setUserData] = useState<UserData | null>(null);
     useEffect(() => {
         async function fetchData() {
@@ -21,23 +29,15 @@ export default function Profile() {
             const db = getFirestore(app);
             const querySnapshot = await getDocs(collection(db, "users"));
             querySnapshot.forEach((doc) => {
-                // doc.data() is never undefined for query doc snapshots
-                const user = auth.currentUser;
-                console.log(doc.id, " => ", doc.data());
-                if (user && user.uid === doc.id) {
+                const currentUser = auth.currentUser;
+                if (currentUser && currentUser.uid === doc.id) {
                     setUserData({
                         displayName: doc.data().displayName,
                         email: doc.data().email,
                         emailVerified: doc.data().emailVerified,
-                        photoURL: doc.data().photoURL
+                        avatar: doc.data().avatar
                     });
-                    console.log("displayName: " + doc.data().displayName)
-                    console.log("email: " + doc.data().email)
-                    console.log("emailVerified: " + doc.data().emailVerified)
-                    console.log("photoURL: " + doc.data().photoURL)
                 }
-
-
             });
         }
         fetchData();
@@ -60,7 +60,6 @@ export default function Profile() {
                             </tr>
                             <tr className="border-gray-100 border-solid border-b">
                                 <th className="text-left pr-10 pl-4 py-3">パスワード</th>
-                                {/* <td className="py-3 pr-4">{userData?.email}</td> */}
                                 <td className="py-3 pr-4"><p className="w-80">＊＊＊＊＊＊</p></td>
                             </tr>
                             <tr className="border-gray-100 border-solid border-b">
@@ -69,7 +68,7 @@ export default function Profile() {
                             </tr>
                             <tr className="border-gray-100 border-solid border-b">
                                 <th className="text-left pr-10 pl-4 py-3">プロフィール画像</th>
-                                <td className="py-3 pr-4"><p className="w-80">{userData?.photoURL}</p></td>
+                                <td className="py-3 pr-4"><p className="w-80">{userData?.avatar}</p></td>
                             </tr>
                         </tbody>
                     </table>
@@ -77,6 +76,10 @@ export default function Profile() {
                 <Link href="/profile/edit" className="bg-blue-800 px-7 py-2">
                     修正
                 </Link>
+
+                <button className='bg-gray-800 px-7 py-2 mt-10 self-end' onClick={handleSignOut}>
+                    サインアウト
+                </button>
             </article>
             <style jsx>{`
 @media screen and (max-width: 800px) {
