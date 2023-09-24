@@ -6,9 +6,14 @@ import { FirebaseError, initializeApp } from 'firebase/app';
 import { firebaseConfig } from "@/components/FirebaseConfig";
 import { UserData } from "@/components/UserData/UserData";
 import { useRouter } from "next/router";
+import { useAuthContext } from "@/components/AuthContext";
 
 export default function Profile() {
     const router = useRouter();
+    const { user } = useAuthContext()
+    if (!user) {
+        router.push("/login");
+    }
     const handleSignOut = async () => {
         try {
             const auth = getAuth()

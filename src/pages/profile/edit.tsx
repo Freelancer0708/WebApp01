@@ -7,9 +7,14 @@ import { useRouter } from 'next/router';
 import Link from "next/link";
 import { UserData } from "@/components/UserData/UserData";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { useAuthContext } from "@/components/AuthContext";
 
 export default function EditProfile() {
     const router = useRouter();
+    const { user } = useAuthContext()
+    if (!user) {
+        router.push("/login");
+    }
     const [userData, setUserData] = useState<UserData | null>(null);
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
