@@ -36,26 +36,26 @@ export default function LoginStatus() {
             });
         }
         fetchData();
-    }, []);
+    }, [router.asPath]);
 
-    const storage = getStorage();
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
     const [avatarUrl, setAvatarUrl] = useState("");
     useEffect(() => {
-        getDownloadURL(ref(storage, "avatar/" + user?.uid + "/" + userData?.avatar))
-        .then((url) => {
-            console.log("url::"+url)
-            setAvatarUrl(url)
-          })
-          .catch((error) => {
-          });
-    }, [user, userData, storage]);
+        if (user?.uid && userData?.avatar) {
+            getDownloadURL(ref(storage, "avatar/" + user?.uid + "/" + userData?.avatar))
+                .then((url) => {
+                    setAvatarUrl(url)
+                });
+        }
+    }, [user, userData]);
 
     if (user) {
         return (
             <>
                 <article className='flex flex-col items-end'>
                     <p className='cursor-pointer'>
-                        {avatarUrl? <img src={avatarUrl} alt="" className='w-10 h-10 rounded-full align-middle border-none object-cover ' onClick={handleProfile} /> :userData?.displayName}
+                        {avatarUrl ? <img src={avatarUrl} alt="" className='w-10 h-10 rounded-full align-middle border-none object-cover ' onClick={handleProfile} /> : userData?.displayName}
                     </p>
                 </article>
             </>

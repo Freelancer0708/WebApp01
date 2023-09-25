@@ -62,10 +62,10 @@ export default function Profile() {
                                 <th className="text-left pr-10 pl-4 py-3">パスワード</th>
                                 <td className="py-3 pr-4"><p className="w-80">＊＊＊＊＊＊</p></td>
                             </tr>
-                            <tr className="border-gray-100 border-solid border-b">
+                            {/* <tr className="border-gray-100 border-solid border-b">
                                 <th className="text-left pr-10 pl-4 py-3">認証</th>
                                 <td className="py-3 pr-4"><p className="w-80">{userData?.emailVerified ? 'True' : 'False'}</p></td>
-                            </tr>
+                            </tr> */}
                             <tr className="border-gray-100 border-solid border-b">
                                 <th className="text-left pr-10 pl-4 py-3">プロフィール画像</th>
                                 <td className="py-3 pr-4"><p className="w-80">{userData?.avatar}</p></td>
