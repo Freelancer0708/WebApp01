@@ -1,4 +1,4 @@
-import { EmailAuthProvider, deleteUser, getAuth, reauthenticateWithCredential, sendEmailVerification, updateEmail, updatePassword, updateProfile } from "firebase/auth";
+import { EmailAuthProvider, deleteUser, getAuth, reauthenticateWithCredential, sendEmailVerification, sendPasswordResetEmail, updateEmail, updatePassword, updateProfile } from "firebase/auth";
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import { getFirestore, collection, getDocs, setDoc, doc } from "firebase/firestore";
 import { initializeApp } from 'firebase/app';
@@ -15,8 +15,10 @@ export default function EditProfile() {
     const [nowEmail, setNowEmail] = useState("");
     const [newEmail, setNewEmail] = useState("");
     const [nowPassword, setNowPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [emailVerified, setEmailVerified] = useState("");
+    const [nowError, setNowError] = useState("");
+    const [newError, setNewError] = useState("");
+    const [sendPassword, setSendPassword] = useState("");
+    const [errorPassword, setErrorPassword] = useState("");
     const [avatar, setAvatar] = useState<File | null>(null);
 
     useEffect(() => {
@@ -31,7 +33,6 @@ export default function EditProfile() {
                     setUserData({
                         displayName: doc.data().displayName,
                         email: doc.data().email,
-                        emailVerified: doc.data().emailVerified,
                         avatar: doc.data().avatar
                     });
                 }
@@ -53,6 +54,8 @@ export default function EditProfile() {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const currentUser = auth.currentUser;
+        setNowError("");
+        setNewError("");
         if (currentUser && nowEmail && nowPassword) {
             const credential = EmailAuthProvider.credential(
                 nowEmail,
@@ -60,28 +63,58 @@ export default function EditProfile() {
             )
             reauthenticateWithCredential(currentUser, credential)
                 .then(() => {
-                    if (newEmail) {
+                    if (newEmail && nowEmail != newEmail) {
                         updateEmail(currentUser, newEmail)
                             .then(() => {
-                                sendEmailVerification(currentUser);
+                                sendEmailVerification(currentUser)
+                                    .then(() => {
+                                        if (currentUser?.uid && newEmail) {
+                                            setDoc(doc(db, "users", currentUser.uid), {
+                                                displayName: userData?.displayName,
+                                                email: newEmail,
+                                                avatar: userData?.avatar
+                                            });
+                                        }
+                                        router.push("/profile");
+                                    });
+                            })
+                            .catch((error) => {
+                                const errorCode = error.code;
+                                if (errorCode == "auth/invalid-email") {
+                                    setNewError("有効なメールアドレスを入力してください。");
+                                } else if (errorCode == "auth/email-already-in-use") {
+                                    setNewError("このメールアドレスは既に登録されています。");
+                                } else if (errorCode == "auth/requires-recent-login") {
+                                    setNewError("最終サインイン時間がかなり前の為、もう一度ログアウトしてログインしてください。");
+                                } else {
+                                    setNewError("登録に問題が発生しました。しばらくしてから再度お試しください。");
+                                }
                             });
+                    } else if (newEmail && nowEmail == newEmail) {
+                        setNewError("このメールアドレスは既に登録されています。");
                     }
-
-                    if (newPassword) {
-                        updatePassword(currentUser, newPassword)
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    if (errorCode == "auth/user-mismatch") {
+                        setNowError("登録した内容と一致しません。");
+                    } else if (errorCode == "auth/user-not-found") {
+                        setNowError("ユーザーが見つかりません。別の情報を入力してください。");
+                    } else if (errorCode == "auth/invalid-credential") {
+                        setNowError("このユーザーは現在無効になっております。");
+                    } else if (errorCode == "auth/invalid-email") {
+                        setNowError("メールアドレスの形式が正しくありません。");
+                    } else if (errorCode == "auth/wrong-password") {
+                        setNowError("パスワードが正しくありません。");
+                    } else if (errorCode == "auth/invalid-verification-code") {
+                        setNowError("認証情報の検証コードが無効になっております。");
+                    } else if (errorCode == "auth/invalid-verification-id") {
+                        setNowError("認証情報の検証IDが無効になっております。");
+                    } else {
+                        setNowError("確認に問題が発生しました。しばらくしてから再度お試しください。");
                     }
                 });
         }
-
-        if (currentUser?.uid && newEmail) {
-            setDoc(doc(db, "users", currentUser.uid), {
-                displayName: userData?.displayName,
-                email: newEmail,
-                emailVerified: userData?.emailVerified ? "True" : "False",
-                avatar: userData?.avatar
-            });
-        }
-        router.push("/profile");
     }
 
     const handleSubmitProfile = (e: FormEvent) => {
@@ -118,21 +151,32 @@ export default function EditProfile() {
             setDoc(doc(db, "users", currentUser.uid), {
                 displayName: displayName ? displayName : userData?.displayName,
                 email: userData?.email,
-                emailVerified: emailVerified ? emailVerified : (userData?.emailVerified ? "True" : "False"),
                 avatar: avatar?.name ? avatar?.name : userData?.avatar
             });
         }
         router.push("/profile");
     }
 
-    const handleDeleteUser = async () => {
+    const handleSubmitPassword = async () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
-        if (currentUser) {
-            deleteUser(currentUser);
+        if (currentUser?.email) {
+            sendPasswordResetEmail(auth, currentUser.email)
+                .then(() => {
+                    const message = currentUser?.email + "にてパスワードの再設定メールを送信いたしました。";
+                    if (currentUser?.email) {
+                        setSendPassword(currentUser?.email)
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log(errorCode)
+                    console.log(errorMessage)
+                });
         }
-        router.push("/register");
     }
+
 
     return (
         <>
@@ -147,10 +191,6 @@ export default function EditProfile() {
                                     <th className="text-left pr-10 pl-4 py-3">ユーザー名</th>
                                     <td className="py-3 pr-4"><input type="text" name="displayName" placeholder={userData?.displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
-                                {/* <tr className="border-gray-100 border-solid border-b">
-                                    <th className="text-left pr-10 pl-4 py-3">認証</th>
-                                    <td className="py-3 pr-4"><input type="text" name="emailVerified" placeholder={userData?.emailVerified ? 'True' : 'False'} onChange={(e) => setEmailVerified(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
-                                </tr> */}
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">プロフィール画像</th>
                                     <td className="py-3 pr-4"><input type="file" name="avatar" onChange={handleImage} className="bg-gray-600 border-b outline-none w-80" accept="image/*" /></td>
@@ -162,8 +202,9 @@ export default function EditProfile() {
                 </section>
                 <section className="mt-8 pt-2 pb-4 px-4 bg-gray-900">
                     <h2 className=" px-2 py-2 text-center">MAIN</h2>
-                    <p className="text-center text-sm leading-relaxed py-4">※メールアドレスとパスワードを変更する際は、<br />現在のメールアドレスとパスワードの入力をお願い致します。</p>
-                    <form onSubmit={handleSubmitMain} className="flex flex-col justify-start items-center">
+                    <p className="text-center text-sm leading-relaxed py-4">※メールアドレスを変更する際は、現在の<br />メールアドレスとパスワードの入力をお願い致します。</p>
+                    <form onSubmit={handleSubmitMain} className="flex flex-col justify-start items-center mb-6">
+                        <h3 className="text-center text-sm font-semibold">{nowError}</h3>
                         <table className="mb-10 flex-table">
                             <tbody>
                                 <tr className="border-gray-100 border-solid border-b">
@@ -176,26 +217,30 @@ export default function EditProfile() {
                                 </tr>
                             </tbody>
                         </table>
+                        <h3 className="text-center text-sm font-semibold">{newError}</h3>
                         <table className="mb-6 flex-table">
                             <tbody>
                                 <tr className="border-gray-100 border-solid border-b">
                                     <th className="text-left pr-10 pl-4 py-3">新メールアドレス</th>
                                     <td className="py-3 pr-4"><input type="text" name="email" placeholder={userData?.email} onChange={(e) => setNewEmail(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
                                 </tr>
-                                <tr className="border-gray-100 border-solid border-b">
-                                    <th className="text-left pr-10 pl-4 py-3">新パスワード</th>
-                                    <td className="py-3 pr-4"><input type="text" name="password" placeholder="＊＊＊＊＊＊" onChange={(e) => setNewPassword(e.target.value)} className="bg-gray-600 border-b outline-none w-80" /></td>
-                                </tr>
                             </tbody>
                         </table>
                         <button type="submit" className="bg-blue-800 px-7 py-2">保存</button>
                     </form>
+                    <h3 className="text-center text-sm font-semibold">{sendPassword ? <>{sendPassword}<br />にてパスワードの再設定メールを送信いたしました。</> : ""}</h3>
+                    <table className="mb-6 flex-table w-full">
+                        <tbody>
+                            <tr className="border-gray-100 border-solid border-b flex w-full items-center justify-between py-1">
+                                <th className="text-left pr-10 pl-4 flex">新パスワード</th>
+                                <td className="py-3 pr-4 flex"><button className="bg-blue-800 px-7 py-2" onClick={handleSubmitPassword}>変更</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
                 </section>
                 <div className="w-full flex items-center justify-between mt-10">
                     <Link href="/profile" className="back bg-gray-800 px-7 py-2">戻る</Link>
-                    <button className='bg-red-800 px-7 py-2' onClick={handleDeleteUser}>
-                        アカウント削除
-                    </button>
                 </div>
             </article>
         </>

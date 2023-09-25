@@ -24,7 +24,6 @@ export default function Register() {
                     return setDoc(doc(db, "users", currentUser.uid), {
                         displayName: "UserName",
                         email: email,
-                        emailVerified: false,
                         avatar: ""
                     });
                 }
@@ -34,7 +33,7 @@ export default function Register() {
                 setPassword('')
                 setErrer('')
                 auth.signOut();
-                router.push("login");
+                router.push("/login");
             })
             .catch((error) => {
                 const errorCode = error.code;

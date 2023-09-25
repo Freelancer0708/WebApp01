@@ -29,7 +29,6 @@ export default function LoginStatus() {
                     setUserData({
                         displayName: doc.data().displayName,
                         email: doc.data().email,
-                        emailVerified: doc.data().emailVerified,
                         avatar: doc.data().avatar
                     });
                 }
@@ -54,8 +53,8 @@ export default function LoginStatus() {
         return (
             <>
                 <article className='flex flex-col items-end'>
-                    <p className='cursor-pointer'>
-                        {avatarUrl ? <img src={avatarUrl} alt="" className='w-10 h-10 rounded-full align-middle border-none object-cover ' onClick={handleProfile} /> : userData?.displayName}
+                    <p className='cursor-pointer' onClick={handleProfile} >
+                        {avatarUrl ? <img src={avatarUrl} alt="" className='w-10 h-10 rounded-full align-middle border-none object-cover' /> : userData?.displayName}
                     </p>
                 </article>
             </>
